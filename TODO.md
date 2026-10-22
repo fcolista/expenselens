@@ -1,5 +1,7 @@
 # TODO
 
+🇮🇹 Italiano · [🇬🇧 English](TODO.en.md)
+
 Idee per le prossime versioni di ExpenseLens, in ordine di priorità consigliato. Sono
 priorità da verificare: non sono state misurate prestazioni o carichi.
 

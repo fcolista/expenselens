@@ -1,5 +1,7 @@
 # Schema PostgreSQL
 
+🇮🇹 Italiano · [🇬🇧 English](SCHEMA.en.md)
+
 Le migrazioni versionate sono in `backend/migrations/versions/`; le relazioni sono definite in `backend/app/models.py`.
 
 ```mermaid

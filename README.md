@@ -1,5 +1,7 @@
 # ExpenseLens
 
+🇮🇹 Italiano · [🇬🇧 English](README.en.md)
+
 ExpenseLens è un'applicazione self-hosted per registrare le spese di un piccolo nucleo familiare. L'interfaccia è SvelteKit/TypeScript/Tailwind; API e servizi sono FastAPI/Python 3.12, SQLAlchemy 2, Pydantic 2 e PostgreSQL 16. Documenti, database e credenziali restano sotto il controllo di chi gestisce il server. L'OCR predefinito è locale e gratuito, eseguito con Tesseract; non richiede account o chiamate a servizi a pagamento.
 
 ## Avvio con Docker Compose su Linux e WSL
@@ -194,9 +196,9 @@ Ogni account ExpenseLens può essere collegato a un solo account Telegram: un se
 | `/notifiche` (`/notify`) | Imposta riepilogo `off`/`weekly`/`monthly` e avvisi budget (es. `/notifiche weekly`). |
 | `/lingua` (`/lang`) | Cambia lingua del bot: `it` o `en`. |
 | `/aiuto` | Riepilogo dei comandi. |
+| `/cancel` | Annulla l'inserimento guidato. |
 
 Ogni comando ha l'alias inglese (`/expense`, `/latest`, `/total`, `/categories`, `/tags`, `/help`). Le foto richiedono un provider OCR (vedi sopra); il servizio condivide il volume dei documenti con l'API.
-| `/cancel` | Annulla l'inserimento guidato. |
 
 I messaggi del bot sono in italiano o inglese. Le spese inserite da Telegram hanno valuta EUR, sono condivise con la famiglia e l'esercente coincide con la descrizione: puoi completarle dall'app.
 
@@ -270,7 +272,7 @@ Senza `BACKUP_AGE_RECIPIENT` i backup sono in **chiaro** e l'agente lo segnala a
 ```bash
 age-keygen -o age-key.txt          # stampa la chiave pubblica "age1..."
 # oppure, senza installare age:
-docker run --rm -u "$(id -u)" -v "$PWD:/out" --entrypoint age-keygen expenselens-backup -o /out/age-key.txt
+docker run --rm -u "$(id -u)" -v "$PWD:/out" --entrypoint age-keygen ghcr.io/fcolista/expenselens-backup:latest -o /out/age-key.txt
 ```
 
 Metti nel `.env` solo la chiave **pubblica** (più chiavi separate da virgola):
