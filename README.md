@@ -211,6 +211,7 @@ La lingua (italiano o inglese) e il tema (auto, chiaro, scuro) si scelgono in **
 ### Funzioni dell'app
 
 - **Passkey** (Face ID / Touch ID): in **Impostazioni → Passkey** registra il dispositivo, poi accedi dalla schermata di login. Richiede HTTPS (o `localhost`); il dominio è dedotto da `FRONTEND_ORIGIN` oppure impostato con `WEBAUTHN_RP_ID`.
+- **Cambio password**: da Impostazioni, con la password attuale (e il codice MFA se attivo). Le altre sessioni vengono disconnesse; non c'è ancora un recupero della password dimenticata (vedi `TODO.md`).
 - **Sessioni attive**: elenco dei dispositivi collegati, con revoca singola o di tutte le altre.
 - **Budget**: importo mensile per categoria (in EUR) nella scheda Categorie, con barra di avanzamento.
 - **Cambio valuta**: selettore rapido nel form della spesa. I tassi (EUR per 1 unità) si inseriscono a mano in Impostazioni (solo admin); con `RATES_PROVIDER=frankfurter` si può aggiornarli online. I totali e i budget convertono le valute con tasso e ignorano quelle senza.

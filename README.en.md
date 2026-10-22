@@ -209,6 +209,7 @@ Language (Italian or English) and theme (auto, light, dark) are chosen in **Sett
 ### App features
 
 - **Passkeys** (Face ID / Touch ID): register the device in **Settings → Passkeys**, then sign in from the login screen. Requires HTTPS (or `localhost`); the domain is derived from `FRONTEND_ORIGIN` or set with `WEBAUTHN_RP_ID`.
+- **Change password**: from Settings, with the current password (and the MFA code if enabled). Other sessions are signed out; there is no forgotten-password recovery yet (see `TODO.en.md`).
 - **Active sessions**: list of connected devices, with revocation of one session or all the others.
 - **Budgets**: monthly amount per category (in EUR) in the Categories tab, with a progress bar.
 - **Currency switch**: quick selector in the expense form. Rates (EUR per 1 unit) are entered manually in Settings (admin only); with `RATES_PROVIDER=frankfurter` they can be refreshed online. Totals and budgets convert currencies that have a rate and ignore those without.

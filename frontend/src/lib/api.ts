@@ -76,6 +76,9 @@ export const api = {
   mfaDisable(code: string): Promise<void> {
     return request('/auth/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) });
   },
+  changePassword(current_password: string, new_password: string, totp_code?: string): Promise<{ revoked: number }> {
+    return request('/auth/password', { method: 'POST', body: JSON.stringify({ current_password, new_password, totp_code: totp_code || null }) });
+  },
   sessions(): Promise<SessionInfo[]> { return request('/auth/sessions'); },
   revokeSession(id: string): Promise<void> { return request(`/auth/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   revokeOtherSessions(): Promise<{ revoked: number }> { return request('/auth/sessions/revoke-others', { method: 'POST' }); },

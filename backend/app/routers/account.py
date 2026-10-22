@@ -22,9 +22,40 @@ from app.models import ExchangeRate, Expense, PasskeyCredential, TelegramUser, U
 from app.routers.auth import set_cookie
 from app.routers.expenses import base_query
 from app.schemas import AuthOutput, UserOutput
-from app.security import create_session, csrf_check, current_session, current_user, household_admin
+from app.security import (
+    create_session, csrf_check, current_session, current_user, household_admin, password_hash,
+    verify_totp,
+)
 
 router = APIRouter(prefix="/api", tags=["account"])
+
+
+# ---------- password ----------
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(max_length=128)
+    new_password: str = Field(min_length=12, max_length=128)
+    totp_code: str | None = Field(default=None, max_length=32, pattern=r"^(?:\d{6}|[0-9a-f]{10})$")
+
+
+@router.post("/auth/password", dependencies=[Depends(csrf_check)])
+@limiter.limit("5/minute")
+def change_password(request: Request, body: PasswordChange, user: User = Depends(current_user),
+                    current: UserSession = Depends(current_session),
+                    db: Session = Depends(get_db)) -> dict[str, int]:
+    if not password_hash.verify(body.current_password, user.password_hash):
+        raise HTTPException(400, "Password attuale non corretta")
+    if user.mfa_enabled and not verify_totp(user, body.totp_code):
+        raise HTTPException(400, "Codice di verifica non valido")
+    if body.new_password == body.current_password:
+        raise HTTPException(422, "La nuova password deve essere diversa da quella attuale")
+    user.password_hash = password_hash.hash(body.new_password)
+    others = db.scalars(select(UserSession).where(UserSession.user_id == user.id,
+                                                  UserSession.id != current.id)).all()
+    for item in others:
+        db.delete(item)
+    db.commit()
+    return {"revoked": len(others)}
 
 
 # ---------- active sessions ----------

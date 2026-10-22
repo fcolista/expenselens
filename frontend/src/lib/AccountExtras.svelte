@@ -20,6 +20,10 @@
   let rateCurrency = '';
   let rateValue = '';
   let busy = false;
+  let pwCurrent = '';
+  let pwNew = '';
+  let pwConfirm = '';
+  let pwCode = '';
 
   const fmt = (value: string | null) => (value ? new Date(value).toLocaleString($locale, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
   const errorText = (e: unknown) => (e instanceof Error ? e.message : $t('common.genericError'));
@@ -48,6 +52,21 @@
   async function revokeOthers() {
     try { await api.revokeOtherSessions(); sessions = await api.sessions(); notify($t('sess.revokedOthers')); }
     catch (e) { fail(errorText(e)); }
+  }
+
+  async function changePassword(event: SubmitEvent) {
+    event.preventDefault();
+    if (pwNew.length < 12) { fail($t('pw.tooShort')); return; }
+    if (pwNew !== pwConfirm) { fail($t('pw.mismatch')); return; }
+    if (pwNew === pwCurrent) { fail($t('pw.same')); return; }
+    busy = true;
+    try {
+      const { revoked } = await api.changePassword(pwCurrent, pwNew, pwCode.trim());
+      pwCurrent = pwNew = pwConfirm = pwCode = '';
+      sessions = await api.sessions();
+      notify($t('pw.changed', { n: revoked }));
+    } catch (e) { fail(errorText(e)); }
+    finally { busy = false; }
   }
 
   async function addPasskey() {
@@ -102,6 +121,18 @@
 
   $: others = sessions.filter((item) => !item.current).length;
 </script>
+
+<div class="group-title">{$t('pw.title')}</div>
+<form class="group" on:submit={changePassword}>
+  <label class="row"><span style="width:150px;flex:none">{$t('pw.current')}</span><input class="field" style="background:transparent" type="password" bind:value={pwCurrent} required maxlength="128" autocomplete="current-password" /></label>
+  <label class="row"><span style="width:150px;flex:none">{$t('pw.new')}</span><input class="field" style="background:transparent" type="password" bind:value={pwNew} required minlength="12" maxlength="128" autocomplete="new-password" /></label>
+  <label class="row"><span style="width:150px;flex:none">{$t('pw.confirm')}</span><input class="field" style="background:transparent" type="password" bind:value={pwConfirm} required minlength="12" maxlength="128" autocomplete="new-password" /></label>
+  {#if user.mfa_enabled}
+    <label class="row"><span style="width:150px;flex:none">{$t('pw.mfa')}</span><input class="field" style="background:transparent" bind:value={pwCode} required maxlength="32" autocomplete="one-time-code" /></label>
+  {/if}
+  <div class="row"><button class="btn btn-primary btn-sm" type="submit" disabled={busy}>{$t('pw.change')}</button></div>
+</form>
+<p class="muted" style="margin:6px 16px 0;font-size:13px">{$t('pw.hint')}</p>
 
 <div class="group-title">{$t('passkey.title')}</div>
 <div class="group">

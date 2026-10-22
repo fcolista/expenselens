@@ -124,3 +124,42 @@ def test_telegram_preferences_summaries_and_budget_alerts():
         assert len(sent) == 1 and sent[0][0] == 1 and "Weekly summary" in sent[0][1]
         assert due_summaries(db, now, 8) == []
         assert due_summaries(db, now.replace(hour=3) + timedelta(days=7), 8) == []
+
+
+def test_change_password(monkeypatch):
+    main.app.state.limiter.reset()
+    engine = make_engine()
+
+    def override_db():
+        with Session(engine) as session:
+            yield session
+
+    main.app.dependency_overrides[get_db] = override_db
+    monkeypatch.setattr(main.settings, "secure_cookies", False)
+    old, new = "a-secure-test-password", "another-secure-password"
+    try:
+        with TestClient(main.app) as first, TestClient(main.app) as second:
+            csrf = register(first)
+            headers = {"X-CSRF-Token": csrf}
+            assert second.post("/api/auth/login", json={"email": "a@example.com", "password": old}).status_code == 200
+
+            wrong = first.post("/api/auth/password", headers=headers,
+                               json={"current_password": "nope-nope-nope", "new_password": new})
+            assert wrong.status_code == 400
+            same = first.post("/api/auth/password", headers=headers,
+                              json={"current_password": old, "new_password": old})
+            assert same.status_code == 422
+            short = first.post("/api/auth/password", headers=headers,
+                               json={"current_password": old, "new_password": "short"})
+            assert short.status_code == 422
+
+            ok = first.post("/api/auth/password", headers=headers,
+                            json={"current_password": old, "new_password": new})
+            assert ok.status_code == 200 and ok.json() == {"revoked": 1}
+            assert first.get("/api/auth/me").status_code == 200
+            assert second.get("/api/auth/me").status_code == 401
+            with TestClient(main.app) as third:
+                assert third.post("/api/auth/login", json={"email": "a@example.com", "password": old}).status_code == 401
+                assert third.post("/api/auth/login", json={"email": "a@example.com", "password": new}).status_code == 200
+    finally:
+        main.app.dependency_overrides.clear()
