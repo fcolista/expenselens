@@ -1,0 +1,26 @@
+{$DOMAIN::80} {
+	encode zstd gzip
+
+	@secure protocol https
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+		-Server
+	}
+	header @secure Strict-Transport-Security "max-age=63072000; includeSubDomains"
+
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	@health path /health
+	handle @health {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

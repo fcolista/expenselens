@@ -1,0 +1,43 @@
+[project]
+name = "expenselens-api"
+version = "0.1.0"
+description = "Self-hosted family expense manager"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic-settings>=2.5,<3",
+  "email-validator>=2.2,<3",
+  "pwdlib[argon2]>=0.2,<1",
+  "pyotp>=2.9,<3",
+  "webauthn>=2.5,<3",
+  "qrcode[pil]>=8,<9",
+  "python-multipart>=0.0.12,<1",
+  "pillow>=12.3,<13",
+  "pytesseract>=0.3.13,<1",
+  "pdf2image>=1.17,<2",
+  "httpx>=0.27,<1",
+  "aiogram>=3.13,<4",
+  "slowapi>=0.1.9,<1",
+  "alembic>=1.13,<2",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+dev = ["pytest>=9.0.3,<10", "httpx>=0.27,<1", "pip-audit>=2.7,<3"]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
