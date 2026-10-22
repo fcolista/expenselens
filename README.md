@@ -9,7 +9,7 @@ ExpenseLens è un'applicazione self-hosted per registrare le spese di un piccolo
 Installa Docker Engine e il plugin Docker Compose, oppure usa Docker Desktop con l'integrazione WSL attiva per la distribuzione Linux. Dalla shell Linux, raggiungi la cartella del progetto (il percorso `/mnt/c/...` è quello tipico quando il progetto si trova sul disco C: di Windows):
 
 ```bash
-cd /mnt/c/Dev/Bills/ExpenseLens
+cd /mnt/c/Dev/ExpenseLens
 ```
 
 Crea il file di configurazione locale e genera due valori casuali esadecimali, compatibili con l'URL del database:
