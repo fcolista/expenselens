@@ -44,6 +44,7 @@ verify: no performance or load measurements have been taken.
 - [ ] Finer roles and permissions (children, read-only guests), invitation by email.
 - [ ] Native app or fuller PWA with push notifications.
 - [ ] More languages; currencies with historical rates (today rates are manual and undated).
+- [ ] Receipt image handling: today images stay in the `documents` volume forever. Options: `KEEP_DOCUMENTS=false` (discard the image after OCR, clearing `document_key`) or `DOCUMENTS_RETENTION_DAYS=N` (delete older files). Expenses in `needs_review` must keep their image until confirmed.
 
 ## 5. Monetisation
 - [ ] Plans and billing with Stripe (free trial, subscriptions, VAT, invoices).

@@ -44,6 +44,7 @@ priorità da verificare: non sono state misurate prestazioni o carichi.
 - [ ] Ruoli e permessi più fini (figli, ospiti in sola lettura), invito via email.
 - [ ] App nativa o PWA più completa con notifiche push.
 - [ ] Altre lingue; valute con tassi storici (oggi i tassi sono manuali e senza data).
+- [ ] Gestione delle immagini degli scontrini: oggi restano nel volume `documents` per sempre. Opzioni: `KEEP_DOCUMENTS=false` (scarta l'immagine dopo l'OCR, azzerando `document_key`) oppure `DOCUMENTS_RETENTION_DAYS=N` (cancella i file più vecchi). Le spese in `needs_review` devono mantenere l'immagine finché non sono confermate.
 
 ## 5. Per monetizzare
 - [ ] Piani e fatturazione con Stripe (prova gratuita, abbonamenti, IVA, fatture).
