@@ -764,8 +764,8 @@
           <button class="link-btn" on:click={discardFailed}>{$t('off.discard')}</button>
         </div>
       {/if}
-      {#if error}<div class="alert alert-err" role="alert">{error}</div>{/if}
-      {#if notice}<div class="alert alert-ok" role="status">{notice}</div>{/if}
+      {#if error}<div class="alert alert-err toast" role="alert">{error}</div>{/if}
+      {#if notice}<div class="alert alert-ok toast" role="status">{notice}</div>{/if}
 
       {#if view === 'expenses'}
         <section class="card" style="margin-bottom:14px">
