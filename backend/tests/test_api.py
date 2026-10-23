@@ -225,10 +225,20 @@ def test_household_admin_can_manage_members_and_preserve_expenses(monkeypatch):
 
             category_response = admin_client.post(
                 "/api/categories",
-                json={"name": "Animali", "color": "#aabbcc"},
+                json={"name": "Animali", "color": "#aabbcc", "icon": "heart"},
                 headers=admin_headers,
             )
             assert category_response.status_code == 201
+            assert category_response.json()["icon"] == "heart"
+            assert admin_client.post(
+                "/api/categories", json={"name": "Brutta", "icon": "<x>"}, headers=admin_headers
+            ).status_code == 422
+            changed = admin_client.put(
+                f"/api/categories/{category_response.json()['id']}",
+                json={"name": "Animali", "icon": "gift", "color": "#112233"},
+                headers=admin_headers,
+            )
+            assert changed.json()["icon"] == "gift" and changed.json()["color"] == "#112233"
             expense.category_id = category_response.json()["id"]
             db.commit()
             assert admin_client.delete(

@@ -23,6 +23,9 @@ from app.security import (
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+DEFAULT_CATEGORY_ICONS = {"Casa": "home", "Alimentari": "cart", "Trasporti": "car",
+                          "Salute": "heart", "Utenze": "bolt", "Altro": "tag"}
+
 
 class MfaCodeInput(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
@@ -68,7 +71,8 @@ def register(request: Request, body: RegisterInput, response: Response,
     if not body.invite_token:
         for name, color in [("Casa", "#0f766e"), ("Alimentari", "#16a34a"), ("Trasporti", "#2563eb"),
                             ("Salute", "#db2777"), ("Utenze", "#7c3aed"), ("Altro", "#64748b")]:
-            db.add(Category(household_id=household_id, name=name, color=color))
+            db.add(Category(household_id=household_id, name=name, color=color,
+                            icon=DEFAULT_CATEGORY_ICONS[name]))
     db.commit()
     token, csrf = create_session(db, user, request)
     set_cookie(response, token)

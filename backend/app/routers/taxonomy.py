@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api", tags=["taxonomy"])
 class TaxonomyInput(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     color: str = Field(default="#64748b", pattern=r"^#[0-9a-fA-F]{6}$")
+    icon: str = Field(default="", pattern=r"^[a-z0-9-]{0,24}$")
     category_ids: list[int] = Field(default_factory=list, max_length=30)
 
 
@@ -29,6 +30,8 @@ class TagCategoriesInput(BaseModel):
 
 class CategoryNameInput(BaseModel):
     name: str = Field(min_length=1, max_length=60)
+    icon: str | None = Field(default=None, pattern=r"^[a-z0-9-]{0,24}$")
+    color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
 
 
 def household_categories(db: Session, user: User, category_ids: list[int]) -> list[Category]:
@@ -57,7 +60,7 @@ def create_category(body: TaxonomyInput, user: User = Depends(current_user),
     if db.scalar(select(Category.id).where(
             Category.household_id == user.household_id, Category.name == name)):
         raise HTTPException(409, "Categoria già esistente")
-    item = Category(household_id=user.household_id, name=name, color=body.color)
+    item = Category(household_id=user.household_id, name=name, color=body.color, icon=body.icon)
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -81,6 +84,10 @@ def rename_category(category_id: int, body: CategoryNameInput, user: User = Depe
             Category.id != category_id)):
         raise HTTPException(409, "Categoria già esistente")
     item.name = name
+    if body.icon is not None:
+        item.icon = body.icon
+    if body.color is not None:
+        item.color = body.color
     db.commit()
     db.refresh(item)
     return CategoryOutput.model_validate(item)

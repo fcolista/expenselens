@@ -68,6 +68,7 @@ class Category(Base):
     household_id: Mapped[int] = mapped_column(ForeignKey("households.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(60))
     color: Mapped[str] = mapped_column(String(7), default="#64748b")
+    icon: Mapped[str] = mapped_column(String(24), default="", server_default="")
     monthly_budget: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     household: Mapped[Household] = relationship(back_populates="categories")
     tags: Mapped[list["Tag"]] = relationship(

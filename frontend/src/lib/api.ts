@@ -140,15 +140,15 @@ export const api = {
     return request('/documents/extract', { method: 'POST', body: data });
   },
   async createTaxonomy(kind: 'categories' | 'tags', name: string, color?: string,
-                       category_ids: number[] = []): Promise<void> {
+                       category_ids: number[] = [], icon?: string): Promise<void> {
     await request(`/${kind}`, {
       method: 'POST',
-      body: JSON.stringify({ name, ...(color ? { color } : {}), category_ids })
+      body: JSON.stringify({ name, ...(color ? { color } : {}), ...(icon ? { icon } : {}), category_ids })
     });
   },
-  renameCategory(id: number, name: string): Promise<Category> {
+  renameCategory(id: number, name: string, icon?: string, color?: string): Promise<Category> {
     return request(`/categories/${id}`, {
-      method: 'PUT', body: JSON.stringify({ name })
+      method: 'PUT', body: JSON.stringify({ name, ...(icon !== undefined ? { icon } : {}), ...(color ? { color } : {}) })
     });
   },
   updateTagCategories(id: number, category_ids: number[]): Promise<Tag> {

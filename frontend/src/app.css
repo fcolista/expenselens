@@ -89,6 +89,14 @@ button.row:active, a.row:active { background: var(--fill); }
 .row-value { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .chevron { color: var(--muted); opacity: .6; flex: none; }
 .icon-tile { flex: none; width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.icon-tile svg { width: 20px; height: 20px; }
+.icon-picker { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.icon-picker .label { flex-basis: 100%; }
+.icon-opt { position: relative; width: 40px; height: 40px; border-radius: 10px; background: var(--fill); display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; }
+.icon-opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.icon-opt svg { width: 20px; height: 20px; }
+.icon-opt:has(input:checked) { background: var(--c, var(--accent)); color: #fff; }
+.icon-opt:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
 .pad { padding: 14px 16px; }
 .card { background: var(--card); border-radius: 12px; padding: 16px; }
 .stat-big { font-size: 28px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -119,6 +127,8 @@ select.field { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 .btn-danger { color: var(--danger); }
 .btn-block { width: 100%; }
 .btn-sm { min-height: 36px; padding: 0 12px; font-size: 15px; border-radius: 10px; }
+.btn-add { min-height: 40px; padding: 0 16px 0 12px; border-radius: 9999px; box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent); }
+.btn-add svg { width: 20px; height: 20px; }
 .icon-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; color: var(--accent); }
 .icon-btn svg { width: 26px; height: 26px; }
 .link-btn { color: var(--accent); font-weight: 500; min-height: 44px; padding: 0 8px; }

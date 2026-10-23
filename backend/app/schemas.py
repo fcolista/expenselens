@@ -45,6 +45,7 @@ class CategoryOutput(BaseModel):
     id: int
     name: str
     color: str
+    icon: str = ""
     monthly_budget: Decimal | None = None
 
 

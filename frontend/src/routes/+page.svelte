@@ -4,7 +4,7 @@
   import { api, isNetworkError } from '../lib/api';
   import type { BudgetItem, RatesInfo } from '../lib/api';
   import AccountExtras from '../lib/AccountExtras.svelte';
-  import Icon from '../lib/Icon.svelte';
+  import Icon, { CATEGORY_ICONS } from '../lib/Icon.svelte';
   import { clearSnapshot, loadSnapshot, queue, saveSnapshot } from '../lib/offline';
   import type { QueuedExpense } from '../lib/offline';
   import { loginWithPasskey, PasskeyCancelled, passkeysSupported } from '../lib/passkey';
@@ -62,6 +62,9 @@
   let expenseSort = 'newest';
   let categoryName = '';
   let categoryColor = '#8fa39a';
+  let categoryIcon = '';
+  let categoryIconDraft = '';
+  let categoryColorDraft = '#8fa39a';
   let editingCategoryId: number | null = null;
   let categoryNameDraft = '';
   let tagName = '';
@@ -529,8 +532,9 @@
     if (!categoryName.trim()) return;
     busy = true; error = ''; notice = '';
     try {
-      await api.createTaxonomy('categories', categoryName.trim(), categoryColor);
+      await api.createTaxonomy('categories', categoryName.trim(), categoryColor, [], categoryIcon);
       categoryName = '';
+      categoryIcon = '';
       categories = await api.categories();
       notice = tt('cat.added');
     } catch (e) { error = message(e); }
@@ -553,6 +557,8 @@
   function startRenameCategory(category: Category) {
     editingCategoryId = category.id;
     categoryNameDraft = category.name;
+    categoryIconDraft = category.icon ?? '';
+    categoryColorDraft = category.color;
   }
 
   async function renameCategory(category: Category) {
@@ -560,7 +566,7 @@
     if (!name) return;
     error = ''; notice = '';
     try {
-      await api.renameCategory(category.id, name);
+      await api.renameCategory(category.id, name, categoryIconDraft, categoryColorDraft);
       categories = await api.categories();
       editingCategoryId = null;
       categoryNameDraft = '';
@@ -767,7 +773,7 @@
         <div class="brand nav-brand"><img src="/favicon.svg" alt="" />{$t('app.name')}</div>
         <span style="flex:1"></span>
         {#if view === 'expenses'}
-          <button class="icon-btn" on:click={openNew} aria-label={$t('exp.new')}><Icon name="plus" /></button>
+          <button class="btn btn-primary btn-add" on:click={openNew}><Icon name="plus" />{$t('exp.new')}</button>
         {/if}
       </div>
     </header>
@@ -824,7 +830,7 @@
               <li>
                 <SwipeRow disabled={offline} duplicateLabel={$t('swipe.duplicate')} deleteLabel={$t('swipe.delete')} onDuplicate={() => duplicate(expense)} onDelete={() => removeExpense(expense)}>
                 <button class="row" on:click={() => openEdit(expense)} aria-label={$t('exp.editLabel', { name: expense.merchant })}>
-                  <span class="icon-tile" style={`background:${category?.color ?? '#a9b0ab'}`} aria-hidden="true">{initial(expense.merchant)}</span>
+                  <span class="icon-tile" style={`background:${category?.color ?? '#a9b0ab'}`} aria-hidden="true">{#if category?.icon}<Icon name={category.icon} />{:else}{initial(expense.merchant)}{/if}</span>
                   <span class="row-main">
                     <span class="row-title" style="font-weight:600">{expense.merchant}</span>
                     <span class="row-sub">{expense.description || category?.name || $t('common.uncategorized')} · {new Date(`${expense.spent_on}T12:00:00`).toLocaleDateString($locale)}</span>
@@ -898,20 +904,39 @@
         {/if}
       {:else if view === 'categories'}
         <p class="subtitle">{$t('cat.intro')}</p>
-        <form class="card" style="display:flex;gap:10px;align-items:flex-end" on:submit={createCategory}>
-          <label style="flex:1;min-width:0"><span class="label">{$t('cat.new')}</span><input class="field" bind:value={categoryName} maxlength="60" placeholder={$t('cat.placeholder')} required /></label>
-          <label><span class="label">{$t('cat.color')}</span><input class="field" style="width:56px;padding:4px" type="color" bind:value={categoryColor} aria-label={$t('cat.colorLabel')} /></label>
-          <button class="btn btn-primary" disabled={busy} aria-label={$t('common.add')}><Icon name="plus" /></button>
+        <form class="card" style="display:grid;gap:12px" on:submit={createCategory}>
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <label style="flex:1;min-width:0"><span class="label">{$t('cat.new')}</span><input class="field" bind:value={categoryName} maxlength="60" placeholder={$t('cat.placeholder')} required /></label>
+            <label><span class="label">{$t('cat.color')}</span><input class="field" style="width:56px;padding:4px" type="color" bind:value={categoryColor} aria-label={$t('cat.colorLabel')} /></label>
+            <button class="btn btn-primary" disabled={busy} aria-label={$t('common.add')}><Icon name="plus" /></button>
+          </div>
+          <fieldset class="icon-picker">
+            <legend class="label">{$t('cat.icon')}</legend>
+            <label class="icon-opt" style="--c:{categoryColor}"><input type="radio" bind:group={categoryIcon} value="" aria-label={$t('cat.iconNone')} /><span>{initial(categoryName || 'A')}</span></label>
+            {#each CATEGORY_ICONS as name}
+              <label class="icon-opt" style="--c:{categoryColor}"><input type="radio" bind:group={categoryIcon} value={name} aria-label={name} /><Icon {name} /></label>
+            {/each}
+          </fieldset>
         </form>
         <div style="height:14px"></div>
         {#if categories.length}
           <ul class="group" style="margin:0;padding:0;list-style:none">
             {#each categories as category (category.id)}
-              <li class="row">
-                <span class="icon-tile" style={`background:${category.color}`} aria-hidden="true">{initial(category.name)}</span>
+              <li class="row" style="align-items:flex-start">
+                <span class="icon-tile" style={`background:${editingCategoryId === category.id ? categoryColorDraft : category.color}`} aria-hidden="true">{#if (editingCategoryId === category.id ? categoryIconDraft : category.icon)}<Icon name={editingCategoryId === category.id ? categoryIconDraft : (category.icon ?? '')} />{:else}{initial(category.name)}{/if}</span>
                 <span class="row-main">
                   {#if editingCategoryId === category.id}
-                    <input class="field" style="max-width:240px;min-height:36px" bind:value={categoryNameDraft} maxlength="60" aria-label={$t('cat.renameLabel', { name: category.name })} on:keydown={(event) => { if (event.key === 'Enter') { event.preventDefault(); renameCategory(category); } if (event.key === 'Escape') editingCategoryId = null; }} />
+                    <span style="display:flex;gap:8px;align-items:center">
+                      <input class="field" style="max-width:240px;min-height:36px" bind:value={categoryNameDraft} maxlength="60" aria-label={$t('cat.renameLabel', { name: category.name })} on:keydown={(event) => { if (event.key === 'Enter') { event.preventDefault(); renameCategory(category); } if (event.key === 'Escape') editingCategoryId = null; }} />
+                      <input class="field" style="width:48px;min-height:36px;padding:3px" type="color" bind:value={categoryColorDraft} aria-label={$t('cat.color')} />
+                    </span>
+                    <fieldset class="icon-picker" style="margin-top:8px">
+                      <legend class="label">{$t('cat.icon')}</legend>
+                      <label class="icon-opt" style="--c:{categoryColorDraft}"><input type="radio" bind:group={categoryIconDraft} value="" aria-label={$t('cat.iconNone')} /><span>{initial(categoryNameDraft || 'A')}</span></label>
+                      {#each CATEGORY_ICONS as name}
+                        <label class="icon-opt" style="--c:{categoryColorDraft}"><input type="radio" bind:group={categoryIconDraft} value={name} aria-label={name} /><Icon {name} /></label>
+                      {/each}
+                    </fieldset>
                   {:else}
                     <span class="row-title">{category.name}</span>
                   {/if}
@@ -919,9 +944,10 @@
                     <span class="row-sub">{$t('budget.used', { spent: money(item.spent, 'EUR', $locale), budget: money(item.budget, 'EUR', $locale) })}</span>
                     <span class="bar-track" style="margin-top:4px"><span class="bar-fill" style={`display:block;width:${Math.min(100, item.ratio * 100)}%;${item.ratio >= 1 ? 'background:var(--danger)' : ''}`}></span></span>
                   {/each}
-                  <span style="display:flex;gap:8px;align-items:center;margin-top:6px">
-                    <input class="field" style="max-width:120px;min-height:36px" inputmode="decimal" bind:value={budgetDrafts[category.id]} placeholder={$locale === 'it' ? '€ / mese' : '€ / month'} aria-label={`${$t('budget.label')} ${category.name}`} on:change={() => saveBudget(category)} />
-                  </span>
+                  <label style="display:block;margin-top:8px">
+                    <span class="label" style="margin-left:0">{$t('budget.label')}</span>
+                    <input class="field" style="max-width:160px;min-height:36px" inputmode="decimal" bind:value={budgetDrafts[category.id]} placeholder={$t('budget.placeholder')} on:change={() => saveBudget(category)} />
+                  </label>
                 </span>
                 {#if editingCategoryId === category.id}
                   <button class="btn btn-sm" on:click={() => renameCategory(category)} disabled={!categoryNameDraft.trim()}>{$t('common.save')}</button>
