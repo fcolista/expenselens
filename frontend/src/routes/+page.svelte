@@ -62,6 +62,8 @@
   let expenseSort = 'newest';
   let categoryName = '';
   let categoryColor = '#8fa39a';
+  let editingCategoryId: number | null = null;
+  let categoryNameDraft = '';
   let tagName = '';
   let tagCategoryIds: number[] = [];
   let tagCategoryDrafts: Record<number, number[]> = {};
@@ -548,6 +550,24 @@
     } catch (e) { error = message(e); }
   }
 
+  function startRenameCategory(category: Category) {
+    editingCategoryId = category.id;
+    categoryNameDraft = category.name;
+  }
+
+  async function renameCategory(category: Category) {
+    const name = categoryNameDraft.trim();
+    if (!name) return;
+    error = ''; notice = '';
+    try {
+      await api.renameCategory(category.id, name);
+      categories = await api.categories();
+      editingCategoryId = null;
+      categoryNameDraft = '';
+      notice = tt('cat.updated');
+    } catch (e) { error = message(e); }
+  }
+
   function editMember(member: User) {
     editingMemberId = member.id;
     memberDraft = { email: member.email, display_name: member.display_name };
@@ -890,7 +910,11 @@
               <li class="row">
                 <span class="icon-tile" style={`background:${category.color}`} aria-hidden="true">{initial(category.name)}</span>
                 <span class="row-main">
-                  <span class="row-title">{category.name}</span>
+                  {#if editingCategoryId === category.id}
+                    <input class="field" style="max-width:240px;min-height:36px" bind:value={categoryNameDraft} maxlength="60" aria-label={$t('cat.renameLabel', { name: category.name })} on:keydown={(event) => { if (event.key === 'Enter') { event.preventDefault(); renameCategory(category); } if (event.key === 'Escape') editingCategoryId = null; }} />
+                  {:else}
+                    <span class="row-title">{category.name}</span>
+                  {/if}
                   {#each budgets.filter((item) => item.category_id === category.id) as item}
                     <span class="row-sub">{$t('budget.used', { spent: money(item.spent, 'EUR', $locale), budget: money(item.budget, 'EUR', $locale) })}</span>
                     <span class="bar-track" style="margin-top:4px"><span class="bar-fill" style={`display:block;width:${Math.min(100, item.ratio * 100)}%;${item.ratio >= 1 ? 'background:var(--danger)' : ''}`}></span></span>
@@ -899,7 +923,13 @@
                     <input class="field" style="max-width:120px;min-height:36px" inputmode="decimal" bind:value={budgetDrafts[category.id]} placeholder={$locale === 'it' ? '€ / mese' : '€ / month'} aria-label={`${$t('budget.label')} ${category.name}`} on:change={() => saveBudget(category)} />
                   </span>
                 </span>
-                <button class="btn btn-danger btn-sm" on:click={() => deleteCategory(category)} aria-label={$t('cat.deleteLabel', { name: category.name })}>{$t('common.delete')}</button>
+                {#if editingCategoryId === category.id}
+                  <button class="btn btn-sm" on:click={() => renameCategory(category)} disabled={!categoryNameDraft.trim()}>{$t('common.save')}</button>
+                  <button class="btn btn-sm" on:click={() => editingCategoryId = null}>{$t('common.cancel')}</button>
+                {:else}
+                  <button class="btn btn-sm" on:click={() => startRenameCategory(category)} aria-label={$t('cat.renameLabel', { name: category.name })}>{$t('common.edit')}</button>
+                  <button class="btn btn-danger btn-sm" on:click={() => deleteCategory(category)} aria-label={$t('cat.deleteLabel', { name: category.name })}>{$t('common.delete')}</button>
+                {/if}
               </li>
             {/each}
           </ul>

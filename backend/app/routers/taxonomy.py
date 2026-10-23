@@ -27,6 +27,10 @@ class TagCategoriesInput(BaseModel):
     category_ids: list[int] = Field(default_factory=list, max_length=30)
 
 
+class CategoryNameInput(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+
+
 def household_categories(db: Session, user: User, category_ids: list[int]) -> list[Category]:
     ids = set(category_ids)
     categories = db.scalars(select(Category).where(
@@ -55,6 +59,28 @@ def create_category(body: TaxonomyInput, user: User = Depends(current_user),
         raise HTTPException(409, "Categoria già esistente")
     item = Category(household_id=user.household_id, name=name, color=body.color)
     db.add(item)
+    db.commit()
+    db.refresh(item)
+    return CategoryOutput.model_validate(item)
+
+
+@router.put("/categories/{category_id}", response_model=CategoryOutput,
+            dependencies=[Depends(csrf_check)])
+def rename_category(category_id: int, body: CategoryNameInput, user: User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> CategoryOutput:
+    item = db.scalar(select(Category).where(
+        Category.id == category_id, Category.household_id == user.household_id
+    ))
+    if not item:
+        raise HTTPException(404, "Categoria non trovata")
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(422, "Il nome non può essere vuoto")
+    if db.scalar(select(Category.id).where(
+            Category.household_id == user.household_id, Category.name == name,
+            Category.id != category_id)):
+        raise HTTPException(409, "Categoria già esistente")
+    item.name = name
     db.commit()
     db.refresh(item)
     return CategoryOutput.model_validate(item)

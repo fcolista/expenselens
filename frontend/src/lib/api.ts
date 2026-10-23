@@ -146,6 +146,11 @@ export const api = {
       body: JSON.stringify({ name, ...(color ? { color } : {}), category_ids })
     });
   },
+  renameCategory(id: number, name: string): Promise<Category> {
+    return request(`/categories/${id}`, {
+      method: 'PUT', body: JSON.stringify({ name })
+    });
+  },
   updateTagCategories(id: number, category_ids: number[]): Promise<Tag> {
     return request(`/tags/${id}`, {
       method: 'PUT', body: JSON.stringify({ category_ids })

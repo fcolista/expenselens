@@ -73,6 +73,18 @@ def test_auth_mfa_upload_expenses_and_reports_are_household_scoped(monkeypatch, 
             second_category = owner.post("/api/categories", json={"name": "Test Categoria"},
                                          headers={"X-CSRF-Token": csrf})
             assert second_category.status_code == 201
+            renamed_category = owner.put(
+                f"/api/categories/{second_category.json()['id']}",
+                json={"name": " Categoria rinominata "},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert renamed_category.status_code == 200, renamed_category.text
+            assert renamed_category.json()["name"] == "Categoria rinominata"
+            assert owner.put(
+                f"/api/categories/{second_category.json()['id']}",
+                json={"name": "Casa"},
+                headers={"X-CSRF-Token": csrf},
+            ).status_code == 409
             linked = owner.put(f"/api/tags/{tag_id}", json={
                 "name": "Ricorrente", "category_ids": [category_id, second_category.json()["id"]],
             }, headers={"X-CSRF-Token": csrf})
